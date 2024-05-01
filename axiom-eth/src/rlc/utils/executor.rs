@@ -116,4 +116,16 @@ where
     fn raw_synthesize_phase1(&self, config: &Self::Config, layouter: impl Layouter<F>) {
         self.builder.borrow().raw_synthesize_phase1(config, layouter, true);
     }
+
+    fn instances(&self) -> Vec<Vec<F>> {
+        self.virtual_assign_phase0();
+        self.virtual_assign_phase1();
+        let builder = self.builder.borrow();
+        builder
+            .base
+            .assigned_instances
+            .iter()
+            .map(|instance| instance.iter().map(|x| *x.value()).collect())
+            .collect()
+    }
 }

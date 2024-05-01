@@ -30,6 +30,7 @@ pub trait TwoPhaseCircuitInstructions<F: ScalarField> {
     fn load_challenges(&self, config: &Self::Config, layouter: impl Layouter<F>);
     fn virtual_assign_phase1(&self);
     fn raw_synthesize_phase1(&self, config: &Self::Config, layouter: impl Layouter<F>);
+    fn instances(&self) -> Vec<Vec<F>>;
 }
 
 // Rust does not like blanket implementations of `Circuit` for multiple other traits.
