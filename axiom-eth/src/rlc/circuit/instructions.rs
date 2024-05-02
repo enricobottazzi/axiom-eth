@@ -78,7 +78,6 @@ impl<F: ScalarField> RlcCircuitBuilder<F> {
                 },
             )
             .unwrap();
-        self.base.assign_instances(&config.base.instance, layouter.namespace(|| "expose public"));
     }
 }
 
@@ -101,4 +100,6 @@ pub trait RlcCircuitInstructions<F: ScalarField> {
         rlc: &RlcChip<F>,
         payload: Self::FirstPhasePayload,
     );
+
+    fn instances(&self) -> Vec<Vec<F>>;
 }
