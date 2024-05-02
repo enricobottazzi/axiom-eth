@@ -1,6 +1,7 @@
 //! Template for functions a circuit should implement to work with two challenge phases,
 //! with particular attention to
 
+use std::cell::RefCell;
 use std::marker::PhantomData;
 
 use halo2_base::{
@@ -28,7 +29,7 @@ pub trait TwoPhaseCircuitInstructions<F: ScalarField> {
     fn virtual_assign_phase0(&self);
     fn raw_synthesize_phase0(&self, config: &Self::Config, layouter: impl Layouter<F>);
     fn load_challenges(&self, config: &Self::Config, layouter: impl Layouter<F>);
-    fn virtual_assign_phase1(&self);
+    fn virtual_assign_phase1(&self) -> F;
     fn raw_synthesize_phase1(&self, config: &Self::Config, layouter: impl Layouter<F>);
 }
 
@@ -37,12 +38,13 @@ pub trait TwoPhaseCircuitInstructions<F: ScalarField> {
 #[derive(Clone, Debug)]
 pub struct TwoPhaseCircuit<F: ScalarField, CI: TwoPhaseCircuitInstructions<F>>(
     pub CI,
+    pub RefCell<Option<F>>, // store the challenge `gamma` here when synthesize is called
     PhantomData<F>,
 );
 
 impl<F: ScalarField, CI: TwoPhaseCircuitInstructions<F>> TwoPhaseCircuit<F, CI> {
     pub fn new(instructions: CI) -> Self {
-        Self(instructions, PhantomData)
+        Self(instructions, RefCell::new(None), PhantomData)
     }
 }
 
@@ -82,6 +84,8 @@ impl<F: ScalarField, CI: TwoPhaseCircuitInstructions<F>> Circuit<F> for TwoPhase
             layouter.next_phase();
         }
         self.0.load_challenges(&config, layouter.namespace(|| "load challenges"));
+        let gamma = self.0.virtual_assign_phase1();
+        *self.1.borrow_mut() = Some(gamma);
         self.0.virtual_assign_phase1();
         self.0.raw_synthesize_phase1(&config, layouter.namespace(|| "raw synthesize phase1"));
         Ok(())

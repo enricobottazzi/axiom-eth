@@ -105,12 +105,14 @@ where
         self.builder.borrow_mut().load_challenge(config, layouter);
     }
 
-    fn virtual_assign_phase1(&self) {
+    fn virtual_assign_phase1(&self) -> F {
         let payload =
             self.payload.borrow_mut().take().expect("FirstPhase witness generation was not run");
         let mut builder = self.builder.borrow_mut();
         let rlc_chip = builder.rlc_chip(self.range_chip.gate());
-        I::virtual_assign_phase1(&mut builder, &self.range_chip, &rlc_chip, payload)
+        let gamma = rlc_chip.gamma();
+        I::virtual_assign_phase1(&mut builder, &self.range_chip, &rlc_chip, payload);
+        *gamma
     }
 
     fn raw_synthesize_phase1(&self, config: &Self::Config, layouter: impl Layouter<F>) {
